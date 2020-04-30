@@ -1,0 +1,12 @@
+name: Stocks-Currencies
+title: Stocks-Currencies
+username:
+account: abhijatri
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2220067
+bundleId: 3087459
+url: https://abhijatri.shinyapps.io/Stocks-Currencies/
+when: 1588278319.12541
+asMultiple: FALSE
+asStatic: FALSE
