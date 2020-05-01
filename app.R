@@ -35,7 +35,7 @@ ui <- fluidPage(
                                 ),
                                 conditionalPanel(
                                     condition = "input.custom == 'No'",
-                                    textInput("ticker_custom","Yahoo Finance Symbol", value = "VIX")
+                                    textInput("ticker_custom","Yahoo Finance Symbol", value = "^VIX")
                                 ),
                                 selectInput("freq","Periodicity ",choices = c("daily","weekly","monthly")),
                                 dateRangeInput("range","Period",start = "2020-01-01"),
@@ -72,29 +72,32 @@ ui <- fluidPage(
 server <- function(input, output) {
     
     observe({
-        name <- ifelse(input$custom == "Yes",input$ticker_cboe,input$ticker_custom)
+        name <- try(ifelse(input$custom == "Yes",input$ticker_cboe,input$ticker_custom))
         try(getSymbols.yahoo(name, from = input$range[1], to = input$range[2], env = parent.frame(), periodicity = input$freq))
+        name2 <- try(gsub("[^[:alnum:]]", "", name))
         
-        data <- try(get(name, envir = parent.frame()))
-        return <- round((last(data[,4])[[1]]/first(data[,1])[[1]] - 1)*100,2)
-        print(return)
+        data <- try(get(name2, envir = parent.frame()))
+        return <- try(round((last(data[,4])[[1]]/first(data[,1])[[1]] - 1)*100,2))
+    
         
-        f_log <- ifelse(input$log == "Yes",TRUE,FALSE)
+        f_log <- try(ifelse(input$log == "Yes",TRUE,FALSE))
         
         output$plot <- renderPlot({
-            chartSeries(data,
+           try(chartSeries(data,
                         type = input$chart_type,
-                        name = name,
+                        name = name2,
                         log.scale = f_log,
                         theme = chartTheme("white"),
                         multi.col = T,
                         minor.ticks=F
             )
+           )
         })
         
         output$return <- renderUI({
-            
-            p(strong(return,"% return"))
+            try(
+                p(strong(return,"% return"))
+            )
             
         })
         
