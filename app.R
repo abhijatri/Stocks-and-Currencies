@@ -2,6 +2,8 @@ library(shiny)
 library(quantmod)
 library(shinythemes)
 library(sysfonts)
+library(magrittr)
+library(DT)
 
 ticker <- read.csv("http://markets.cboe.com/us/equities/market_statistics/listed_symbols/csv", stringsAsFactors = F)$Name
 
@@ -46,7 +48,8 @@ ui <- fluidPage(
                             
                             mainPanel(
                                 plotOutput("plot"),
-                                uiOutput("return")
+                                uiOutput("return"),
+                                div(style = 'overflow-x: scroll',DT::dataTableOutput("data"))
                             )
                         )
                ),
@@ -61,7 +64,8 @@ ui <- fluidPage(
                             ),
                             
                             mainPanel(
-                                plotOutput("plot2")
+                                plotOutput("plot2"),
+                                div(style = 'overflow-x: scroll',DT::dataTableOutput("data2"))
                             )
                         )
                )
@@ -78,26 +82,37 @@ server <- function(input, output) {
         
         data <- try(get(name2, envir = parent.frame()))
         return <- try(round((last(data[,4])[[1]]/first(data[,1])[[1]] - 1)*100,2))
-    
+        
+        dt <- try(data.frame(Day = index(data), data))
+        dt <- try(dt[order(dt$Day, decreasing = T),])
+        
         
         f_log <- try(ifelse(input$log == "Yes",TRUE,FALSE))
         
         output$plot <- renderPlot({
-           try(chartSeries(data,
-                        type = input$chart_type,
-                        name = name2,
-                        log.scale = f_log,
-                        theme = chartTheme("white"),
-                        multi.col = T,
-                        minor.ticks=F
+            try(chartSeries(data,
+                            type = input$chart_type,
+                            name = name2,
+                            log.scale = f_log,
+                            theme = chartTheme("white"),
+                            multi.col = T,
+                            minor.ticks=F
             )
-           )
+            )
         })
         
         output$return <- renderUI({
             try(
                 p(strong(return,"% return"))
             )
+            
+        })
+        
+        output$data <- DT::renderDataTable({
+            
+            DT::datatable(dt,rownames = F) %>%
+                formatRound(c(2,3,4,5,7), 2) %>% 
+                formatCurrency(c(6), currency = "", interval = 3, mark = ",", digits = 0)
             
         })
         
@@ -112,6 +127,9 @@ server <- function(input, output) {
         
         f_log2 <- ifelse(input$log2 == "Yes",TRUE,FALSE)
         
+        dt <- try(data.frame(Day = index(data), data))
+        dt <- try(dt[order(dt$Day, decreasing = T),])
+        
         output$plot2 <- renderPlot({
             chartSeries(data,
                         name = name,
@@ -121,6 +139,13 @@ server <- function(input, output) {
                         multi.col = F,
                         minor.ticks=F
             )
+        })
+        
+        output$data2 <- DT::renderDataTable({
+            
+            DT::datatable(dt,rownames = F)
+            datatable(dt,rownames = F) %>%
+                formatRound(c(2), 2)
         })
         
     })
