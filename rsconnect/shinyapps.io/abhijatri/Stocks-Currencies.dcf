@@ -5,8 +5,8 @@ account: abhijatri
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2220067
-bundleId: 3089215
+bundleId: 3089247
 url: https://abhijatri.shinyapps.io/Stocks-Currencies/
-when: 1588319670.33549
+when: 1588320439.82189
 asMultiple: FALSE
 asStatic: FALSE

@@ -97,7 +97,7 @@ server <- function(input, output) {
                             name = name2,
                             log.scale = f_log,
                             theme = chartTheme("white"),
-                            multi.col = T,
+                            multi.col = F,
                             minor.ticks=F
             )
             )
