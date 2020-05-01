@@ -1,9 +1,9 @@
 library(shiny)
 library(quantmod)
 library(shinythemes)
+library(sysfonts)
 
 ticker <- read.csv("http://markets.cboe.com/us/equities/market_statistics/listed_symbols/csv", stringsAsFactors = F)$Name
-
 
 ui <- fluidPage(
     theme = shinytheme("flatly"),
@@ -19,6 +19,7 @@ ui <- fluidPage(
     navbarPage("Stock Prices and Currencies",
                collapsible = T,
                footer = tagList(
+                   br(),
                    tags$a(href="mailto:abhijatridas@gmail.com",icon("envelope"),target="_blank"),
                    tags$a(href="https://www.linkedin.com/in/abhijatri-das-2800454b",icon("linkedin"),target="_blank"),
                    tags$a(href="https://github.com/abhijatri/Stocks-and-Currencies.git", icon("github"), "Source Code", target="_blank")
@@ -44,7 +45,8 @@ ui <- fluidPage(
                             ),
                             
                             mainPanel(
-                                plotOutput("plot")
+                                plotOutput("plot"),
+                                uiOutput("return")
                             )
                         )
                ),
@@ -74,6 +76,8 @@ server <- function(input, output) {
         try(getSymbols.yahoo(name, from = input$range[1], to = input$range[2], env = parent.frame(), periodicity = input$freq))
         
         data <- try(get(name, envir = parent.frame()))
+        return <- round((last(data[,4])[[1]]/first(data[,1])[[1]] - 1)*100,2)
+        print(return)
         
         f_log <- ifelse(input$log == "Yes",TRUE,FALSE)
         
@@ -83,7 +87,15 @@ server <- function(input, output) {
                         name = name,
                         log.scale = f_log,
                         theme = chartTheme("white"),
+                        multi.col = T,
+                        minor.ticks=F
             )
+        })
+        
+        output$return <- renderUI({
+            
+            p(strong(return,"% return"))
+            
         })
         
     })
@@ -103,6 +115,8 @@ server <- function(input, output) {
                         type = 'line',
                         log.scale = f_log2,
                         theme = chartTheme("white"),
+                        multi.col = F,
+                        minor.ticks=F
             )
         })
         
