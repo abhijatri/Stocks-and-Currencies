@@ -42,7 +42,8 @@ ui <- fluidPage(
                                 selectInput("freq","Periodicity ",choices = c("daily","weekly","monthly")),
                                 dateRangeInput("range","Period",start = "2020-01-01"),
                                 radioButtons("chart_type","Chart Type",c("candlesticks", "matchsticks", "bars","line")),
-                                radioButtons("log","Log Scale",c("Yes","No"), inline = T, selected = "No")
+                                radioButtons("log","Log Scale",c("Yes","No"), inline = T, selected = "No"),
+                                downloadButton('downloadData', 'Download .csv')
                                 
                             ),
                             
@@ -59,7 +60,8 @@ ui <- fluidPage(
                                 selectInput("ticker_curr1","Currency 1", choices = rownames(oanda.currencies)),
                                 selectInput("ticker_curr2","Currency 2", choices = rownames(oanda.currencies)),
                                 dateRangeInput("range2","Period",start = Sys.Date() - 180),
-                                radioButtons("log2","Log Scale",c("Yes","No"), inline = T, selected = "No")
+                                radioButtons("log2","Log Scale",c("Yes","No"), inline = T, selected = "No"),
+                                downloadButton('downloadData2', 'Download .csv')
                                 
                             ),
                             
@@ -116,10 +118,20 @@ server <- function(input, output) {
             
         })
         
+        output$downloadData <- downloadHandler(
+            filename = function() {
+                paste(paste(name2, input$range[1], input$range[2], sep="_"),".csv", sep = "")
+            },
+            content = function(file) {
+                write.csv(dt, file,row.names = FALSE)
+            }
+        )
+        
     })
     
     observe({
         name <- paste(input$ticker_curr1,input$ticker_curr2, sep = "/")
+        name2 <- paste(input$ticker_curr1,input$ticker_curr2, sep = "_")
         
         getSymbols(name, src = "oanda", from = input$range2[1], to = input$range2[2], env = parent.frame())
         
@@ -147,6 +159,15 @@ server <- function(input, output) {
             datatable(dt,rownames = F) %>%
                 formatRound(c(2), 2)
         })
+        
+        output$downloadData2 <- downloadHandler(
+            filename = function() {
+                paste(paste(name2, input$range2[1], input$range2[2], sep="_"),".csv", sep = "")
+            },
+            content = function(file) {
+                write.csv(dt, file,row.names = FALSE)
+            }
+        )
         
     })
 }
